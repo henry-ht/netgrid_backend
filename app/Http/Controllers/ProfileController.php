@@ -9,6 +9,16 @@ use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
+    public function get(){
+
+        return response()->json([
+            'status' => true,
+            'data'      => Auth::user(),
+            'message' => __('User data'),
+        ], 200);
+    }
+
+
     public function update(UpdateProfileRequest $request, User $user){
         try{
             $credentials = $request->only([
@@ -25,6 +35,7 @@ class ProfileController extends Controller
             if ($okUpdate) {
                 return response()->json([
                     'status' => true,
+                    'data'      => $user,
                     'message' => __('The :resource was updated!', ['resource' => 'user']),
                 ], 200);
             }
@@ -32,7 +43,7 @@ class ProfileController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'oops try again',
-            ], 200);
+            ], 500);
 
         } catch (\Throwable $th) {
             return response()->json([

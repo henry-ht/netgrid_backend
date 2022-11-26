@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Favorite;
 use App\Http\Requests\StoreFavoriteRequest;
 use App\Http\Requests\UpdateFavoriteRequest;
+use Illuminate\Support\Facades\Auth;
 
 class FavoriteController extends Controller
 {
@@ -15,17 +16,20 @@ class FavoriteController extends Controller
      */
     public function index()
     {
-        //
-    }
+        $favorites = Favorite::where('user_id', Auth::user()->id)->get();
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        if(count($favorites)){
+            return response()->json([
+                'status' => true,
+                'data'      => $favorites,
+                'message' => __('User data'),
+            ], 200);
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => __('Without results'),
+        ], 200);
     }
 
     /**
@@ -36,41 +40,27 @@ class FavoriteController extends Controller
      */
     public function store(StoreFavoriteRequest $request)
     {
-        //
-    }
+        try {
+            $credentials = $request->only([
+                'ref_api',
+            ]);
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Favorite  $favorite
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Favorite $favorite)
-    {
-        //
-    }
+            $credentials['user_id'] = Auth::user()->id;
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Favorite  $favorite
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Favorite $favorite)
-    {
-        //
-    }
+            $favorite = Favorite::create($credentials);
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \App\Http\Requests\UpdateFavoriteRequest  $request
-     * @param  \App\Models\Favorite  $favorite
-     * @return \Illuminate\Http\Response
-     */
-    public function update(UpdateFavoriteRequest $request, Favorite $favorite)
-    {
-        //
+            return response()->json([
+                'status' => true,
+                'data'      => $favorite,
+                'message' => __('Character added to favorites!'),
+            ], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -81,6 +71,18 @@ class FavoriteController extends Controller
      */
     public function destroy(Favorite $favorite)
     {
-        //
+        if($favorite->user_id == Auth::user()->id){
+            $favorite->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => __('Character removed from favorites'),
+            ], 200);
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => __('Unauthorized'),
+        ], 401);
     }
 }

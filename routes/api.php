@@ -32,6 +32,8 @@ Route::group(['middleware' => ['auth:sanctum']], function (){
         'profile' => 'user',
     ]])->name('api.profile.update');
 
+    Route::get("profile", [ProfileController::class, 'get'])->name('api.profile.get');
+
     Route::apiResource("favorite", FavoriteController::class);
 
 });
